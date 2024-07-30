@@ -1,0 +1,48 @@
+version: "3.8"
+
+services:
+ mysql:
+  image: mysql:latest
+  container_name: php_foo_mysql
+  environment: 
+   MYSQL_ROOT_PASSWORD: foo_root
+   MYSQL_DATABASE: foo_db
+   MYSQL_USER: root
+   MYSQL_PASSWORD: foo_pw
+  restart: always
+  ports:
+   #port exposes:mysql port inside container
+   - "3300:3306"
+  expose:
+   - "3306"
+  volumes:
+   - database:/var/lib/mysql
+
+ php:
+  build:
+    context: .
+    dockerfile: docker/php/Dockerfile
+  container_name: php_foo_app
+  restart: always
+  ports:
+   - "9000:9000"
+  volumes:
+   - ./public:/var/www/mywebsite.com/html/
+  depends_on:
+   - mysql
+
+ nginx:
+  build:
+   context: .
+   dockerfile: docker/nginx/Dockerfile
+  container_name: php_foo_nginx
+  restart: always
+  ports:
+   - "8000:80"
+  volumes:
+   - ./public:/var/www/mywebsite.com/html/
+  links:
+   - php
+
+volumes:
+ database:
